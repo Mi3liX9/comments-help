@@ -36,7 +36,7 @@ bot.command(["start", "help"], (ctx) =>
 );
 
 export const groupOnlyBot = bot.filter(
-  (ctx) => ctx.chat?.type === "supergroup"
+  (ctx) => ctx.chat?.type === "supergroup" && !ctx.message?.is_automatic_forward
 );
 
 export const channelOnly = bot.filter((ctx) => ctx.chat?.type === "channel");
