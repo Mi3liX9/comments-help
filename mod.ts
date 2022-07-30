@@ -3,18 +3,20 @@ import { Application, Router } from "https://deno.land/x/oak/mod.ts";
 import { bot } from "./bot.ts";
 
 const token = Deno.env.get("BOT_TOKEN");
-const handleUpdate = webhookCallback(bot, "std/http");
+const handleUpdate = webhookCallback(bot, "oak");
 
 const router = new Router();
 
-router.post("/" + token, async (ctx) => {
-  try {
-    return await handleUpdate(ctx.request);
-  } catch (err) {
-    console.error(err);
-  }
-  return new Response();
-});
+router.post("/" + token, handleUpdate);
+
+// router.post("/" + token, async (ctx) => {
+//   try {
+//     return await handleUpdate(ctx);
+//   } catch (err) {
+//     console.error(err);
+//   }
+//   return new Response();
+// });
 
 router.use(() => new Response("Hello world!"));
 
