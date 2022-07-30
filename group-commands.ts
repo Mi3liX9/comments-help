@@ -14,12 +14,15 @@ export async function toggleMembersMode(ctx: MyContext) {
 
 export async function removeMmeber(ctx: MyContext) {
   if (!ctx.session.preventMembers) return;
+  try {
+    const author = await ctx.getAuthor();
+    if (author.status !== "member") return;
 
-  const author = await ctx.getAuthor();
-  if (author.status !== "member") return;
-
-  await ctx.banAuthor();
-  await ctx.unbanChatMember(author.user.id);
+    await ctx.banAuthor();
+    await ctx.unbanChatMember(author.user.id);
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 export async function deleteMessageWithoutReply(
@@ -28,5 +31,9 @@ export async function deleteMessageWithoutReply(
   if (!ctx.session.onlyReply) return;
   if (typeof ctx.message.reply_to_message !== "undefined") return;
 
-  await ctx.deleteMessage();
+  try {
+    await ctx.deleteMessage();
+  } catch (err) {
+    console.error(err);
+  }
 }

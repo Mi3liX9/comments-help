@@ -3,23 +3,30 @@ import { webhookCallback } from "https://deno.land/x/grammy@v1.9.2/mod.ts";
 import { serve } from "https://deno.land/x/sift@0.5.0/mod.ts";
 import { bot } from "./bot.ts";
 
-switch (Deno.env.get("DENO_ENV")) {
-  case "PRODUCTION":
-    webhookApp();
+const ENV = Deno.env.get("DENO_ENV");
+
+function app() {
+  if (ENV?.toLowerCase() === "production") {
     console.log("Bot is started using Webhooks.");
-    break;
-  case "DEVELOPMENT":
-  default:
-    try {
-      await bot.start();
-      console.log("Bot is started using Long Poll.");
-    } catch (err) {
-      console.error(err);
-    }
+    return webhookApp();
+  }
+  console.log("Bot is started using Long Poll.");
+  return startPolling();
+}
+
+app();
+
+async function startPolling() {
+  try {
+    await bot.start();
+  } catch (err) {
+    console.error(err);
+  } finally {
     bot.catch(async (error) => {
       await error.ctx.reply(error.message);
       console.log(error.message);
     });
+  }
 }
 
 function webhookApp() {
