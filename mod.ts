@@ -1,23 +1,34 @@
 import { webhookCallback } from "https://deno.land/x/grammy@v1.9.2/mod.ts";
-import { serve } from "https://deno.land/x/sift@0.5.0/mod.ts";
+import { Application, Router } from "https://deno.land/x/oak/mod.ts";
 import { bot } from "./bot.ts";
 
-console.log("Bot is started using Webhooks.");
-
+const token = Deno.env.get("BOT_TOKEN");
 const handleUpdate = webhookCallback(bot, "std/http");
 
-serve({
-  ["/" + Deno.env.get("BOT_TOKEN")]: async (req) => {
-    if (req.method == "POST") {
-      try {
-        return await handleUpdate(req);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    return new Response();
-  },
-  "/": () => {
-    return new Response("Hello world!");
-  },
+const router = new Router();
+
+router.post("/" + token, async (ctx) => {
+  try {
+    return await handleUpdate(ctx.request);
+  } catch (err) {
+    console.error(err);
+  }
+  return new Response();
 });
+
+router.use(() => new Response("Hello world!"));
+
+const app = new Application();
+
+app.use(router.routes());
+app.use(router.allowedMethods());
+
+app.addEventListener("error", (e) => {
+  console.error("ERROR: ", e.error);
+});
+
+app.addEventListener("listen", (e) => {
+  console.log("Bot is started using Webhooks.");
+});
+
+await app.listen({ hostname: "localhost", port: 8080 });
